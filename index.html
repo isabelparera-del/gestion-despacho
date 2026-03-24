@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestiones Despacho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f3;--surface:#ffffff;--border:#e2e0d8;--border-strong:#c8c5bb;
+  --text:#1a1916;--text-muted:#6b6860;--text-faint:#9e9b93;
+  --accent:#1a1916;--accent-text:#ffffff;
+  --blue:#1e4b8f;--blue-bg:#eef2fa;
+  --purple:#4a2d8a;--purple-bg:#f0ecfb;
+  --green:#1a5c35;--green-bg:#eaf5ee;
+  --amber:#7a4a0a;--amber-bg:#fef4e4;
+  --pink:#7a1a4a;--pink-bg:#fceef5;
+  --gray-bg:#f1f0ec;--red:#8a1a1a;--red-bg:#fceaea;
+  --radius:6px;--radius-lg:10px;
+}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh}
+
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:48px 40px;text-align:center;max-width:360px;width:100%}
+.login-logo{font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;margin-bottom:40px}
+.login-title{font-size:22px;font-weight:600;margin-bottom:8px}
+.login-desc{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:32px}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 16px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);cursor:pointer;font-size:13px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--text);transition:background 0.12s}
+.btn-google:hover{background:var(--bg)}
+.btn-google svg{width:18px;height:18px;flex-shrink:0}
+
+#app-screen{display:none}
+.app-shell{display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-title{font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
+.logo-sub{font-size:11px;color:var(--text-faint);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.sidebar-nav{padding:12px 10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text-muted);transition:all 0.12s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--accent);color:var(--accent-text);font-weight:500}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.sidebar-user{padding:14px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--blue);overflow:hidden;flex-shrink:0}
+.user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.user-name{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-logout{border:none;background:none;cursor:pointer;color:var(--text-faint);font-size:11px;padding:2px 4px;border-radius:4px}
+.btn-logout:hover{color:var(--red)}
+
+.main{flex:1;padding:32px 36px;overflow-y:auto;max-width:1100px}
+.page{display:none}.page.active{display:block}
+.page-header{margin-bottom:28px}
+.page-header h1{font-size:20px;font-weight:600}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:4px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:20px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:16px}
+
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.metric-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-faint);margin-bottom:8px}
+.metric-value{font-size:26px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:-0.02em}
+.metric-value.currency::after{font-size:14px;content:' €';color:var(--text-muted);font-weight:400}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted)}
+input,select,textarea{border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);background:var(--surface);width:100%;transition:border-color 0.12s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--text)}
+textarea{resize:vertical;min-height:64px}
+
+.btn-row{display:flex;gap:8px;margin-top:18px;align-items:center}
+.btn{border:1px solid var(--border-strong);border-radius:var(--radius);padding:8px 16px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;background:var(--surface);color:var(--text);font-weight:500;transition:all 0.12s}
+.btn:hover{background:var(--bg)}
+.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.btn.primary:hover{opacity:0.85}
+.btn.danger{color:var(--red);border-color:#f0c8c8}.btn.danger:hover{background:var(--red-bg)}
+.btn.sm{padding:4px 10px;font-size:11px}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.tfoot td{border-top:1px solid var(--border-strong);border-bottom:none;font-weight:600;font-family:'IBM Plex Mono',monospace;background:var(--bg)!important}
+
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge.fiscal{background:var(--blue-bg);color:var(--blue)}
+.badge.mercantil{background:var(--purple-bg);color:var(--purple)}
+.badge.dgt{background:var(--green-bg);color:var(--green)}
+.badge.notif{background:var(--amber-bg);color:var(--amber)}
+.badge.sepa{background:var(--pink-bg);color:var(--pink)}
+.badge.otro{background:var(--gray-bg);color:var(--text-muted)}
+
+.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar select{width:auto;font-size:12px;padding:5px 8px}
+.filter-label{font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text-faint);font-size:13px;border:1px dashed var(--border);border-radius:var(--radius-lg)}
+.empty-icon{font-size:28px;margin-bottom:8px}
+.money{font-family:'IBM Plex Mono',monospace;font-size:13px;white-space:nowrap}
+.money.highlight{color:var(--blue);font-weight:500}
+.money.total{color:var(--text);font-weight:600}
+
+.sheets-box{border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:center;gap:14px;background:var(--green-bg);margin-bottom:16px}
+.sheets-icon{width:32px;height:32px;flex-shrink:0}
+.sheets-title{font-size:13px;font-weight:500;color:var(--green)}
+.sheets-sub{font-size:11px;color:var(--green);opacity:0.8;margin-top:2px;font-family:'IBM Plex Mono',monospace}
+
+.informe-cliente-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:16px;overflow:hidden}
+.informe-cliente-header{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--bg);border-bottom:1px solid var(--border)}
+.informe-cliente-name{font-weight:600;font-size:14px}
+.informe-cliente-totals{font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transform:translateY(8px);transition:all 0.2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media print{.sidebar,.filter-bar,.btn,.no-print{display:none!important}.main{padding:0;max-width:100%}body{background:white}}
+@media(max-width:768px){.sidebar{display:none}.main{padding:16px}.metrics-row{grid-template-columns:1fr 1fr}.form-grid,.form-grid.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Gestiones</div>
+    <div class="login-sub">Despacho</div>
+    <div class="login-title">Accede a tu despacho</div>
+    <div class="login-desc">Inicia sesión con tu cuenta de Google para acceder a tus gestiones, clientes e informes de facturación.</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continuar con Google
+    </button>
+  </div>
+</div>
+
+<div id="app-screen">
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">Gestiones</div>
+      <div class="logo-sub">Despacho</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('registro')"><span class="nav-icon">✎</span> Registro</button>
+      <button class="nav-item" onclick="showPage('suplidos')"><span class="nav-icon">◈</span> Suplidos</button>
+      <button class="nav-item" onclick="showPage('informe')"><span class="nav-icon">⊟</span> Informe facturación</button>
+      <button class="nav-item" onclick="showPage('clientes')"><span class="nav-icon">◎</span> Clientes</button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">--</div>
+      <div class="user-name" id="user-name">—</div>
+      <button class="btn-logout" onclick="logoutUser()" title="Cerrar sesión">✕</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page active" id="page-registro">
+      <div class="page-header"><h1>Registro de gestiones</h1><p>Registra cada trámite realizado para un cliente</p></div>
+      <div class="card">
+        <div class="card-title">Nueva gestión</div>
+        <div class="form-grid">
+          <div class="field"><label>Cliente</label><select id="f-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+          <div class="field"><label>Tipo de gestión</label>
+            <select id="f-tipo">
+              <option value="fiscal">Declaración fiscal (IVA, IRPF, IS…)</option>
+              <option value="mercantil">Constitución / modificación mercantil</option>
+              <option value="dgt">Trámite DGT / transferencia vehículo</option>
+              <option value="notif">Notificaciones / certificado digital / marca</option>
+              <option value="sepa">Fichero SEPA / facturación terceros</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field full"><label>Descripción</label><input type="text" id="f-desc" placeholder="Ej: IVA 2T 2025 — Transmisión Volkswagen Golf matrícula XXXX"></div>
+          <div class="field"><label>Fecha</label><input type="date" id="f-fecha"></div>
+          <div class="field"><label>Honorarios (€)</label><input type="number" id="f-honor" placeholder="0.00" step="0.01" min="0"></div>
+          <div class="field"><label>Suplidos (€)</label><input type="number" id="f-suplido" placeholder="0.00" step="0.01" min="0"></div>
+          <div class="field"><label>Forma de pago</label>
+            <select id="f-pago">
+              <option value="domiciliacion">Domiciliación bancaria</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="efectivo">Efectivo</option>
+            </select>
+          </div>
+          <div class="field"><label>Periodicidad</label>
+            <select id="f-periodo">
+              <option value="unica">Única</option>
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="anual">Anual</option>
+            </select>
+          </div>
+          <div class="field full"><label>Notas</label><textarea id="f-notas" placeholder="Observaciones, referencias, número de expediente…"></textarea></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="addGestion()">Registrar gestión</button>
+          <button class="btn" onclick="clearFormGestion()">Limpiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Gestiones registradas</div>
+          <div class="filter-bar" style="margin-bottom:0">
+            <select id="filtro-mes" onchange="renderTablaGestiones()" style="font-size:12px;padding:5px 8px;width:auto"><option value="">Todos los meses</option></select>
+            <select id="filtro-cliente" onchange="renderTablaGestiones()" style="font-size:12px;padding:5px 8px;width:auto"><option value="">Todos los clientes</option></select>
+          </div>
+        </div>
+        <div class="table-wrap" id="tabla-gestiones"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-suplidos">
+      <div class="page-header"><h1>Suplidos</h1><p>Importes pagados por cuenta del cliente</p></div>
+      <div class="card">
+        <div class="card-title">Nuevo suplido</div>
+        <div class="form-grid">
+          <div class="field"><label>Cliente</label><select id="s-cliente"><option value="">— Seleccionar cliente —</option></select></div>
+          <div class="field"><label>Concepto</label><input type="text" id="s-concepto" placeholder="Ej: Tasa DGT, Arancel Registro Mercantil…"></div>
+          <div class="field"><label>Importe (€)</label><input type="number" id="s-importe" placeholder="0.00" step="0.01" min="0"></div>
+          <div class="field"><label>Fecha</label><input type="date" id="s-fecha"></div>
+          <div class="field full"><label>Referencia / factura</label><input type="text" id="s-obs" placeholder="Nº de factura, referencia de pago…"></div>
+        </div>
+        <div class="btn-row"><button class="btn primary" onclick="addSuplido()">Añadir suplido</button></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Suplidos registrados</div>
+          <div class="filter-bar" style="margin-bottom:0">
+            <select id="sf-mes" onchange="renderTablaSuplidos()" style="font-size:12px;padding:5px 8px;width:auto"><option value="">Todos los meses</option></select>
+            <select id="sf-cliente" onchange="renderTablaSuplidos()" style="font-size:12px;padding:5px 8px;width:auto"><option value="">Todos los clientes</option></select>
+          </div>
+        </div>
+        <div class="table-wrap" id="tabla-suplidos"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-informe">
+      <div class="page-header"><h1>Informe de facturación</h1><p>Resumen mensual listo para el departamento de facturación</p></div>
+      <div class="card no-print">
+        <div class="filter-bar" style="margin-bottom:0">
+          <span class="filter-label">Mes:</span>
+          <select id="inf-mes" onchange="renderInforme()" style="width:auto"><option value="">Mes actual</option></select>
+          <span class="filter-label" style="margin-left:8px">Cliente:</span>
+          <select id="inf-cliente" onchange="renderInforme()" style="width:auto"><option value="">Todos</option></select>
+          <button class="btn" onclick="window.print()" style="margin-left:auto">Imprimir / PDF</button>
+        </div>
+      </div>
+      <div id="informe-contenido"></div>
+    </div>
+
+    <div class="page" id="page-clientes">
+      <div class="page-header"><h1>Clientes</h1><p>Gestiona tu cartera de clientes</p></div>
+      <div class="card">
+        <div class="card-title">Importar desde Google Sheets</div>
+        <div class="sheets-box">
+          <svg class="sheets-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#43A047" d="M37 45H11c-1.657 0-3-1.343-3-3V6c0-1.657 1.343-3 3-3h19l10 10v29c0 1.657-1.343 3-3 3z"/>
+            <path fill="#C8E6C9" d="M40 13H30V3z"/>
+            <path fill="#E8F5E9" d="M31 23H17v-2h14v2zm0 4H17v-2h14v2zm-7 4h-7v-2h7v2z"/>
+          </svg>
+          <div style="flex:1">
+            <div class="sheets-title">Hoja de clientes conectada</div>
+            <div class="sheets-sub">Columnas: Código · Nombre</div>
+          </div>
+          <button class="btn sm" onclick="importarSheets()" id="btn-import-sheets">Importar / actualizar</button>
+        </div>
+        <div id="sheets-result"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Añadir cliente manualmente</div>
+        <div class="form-grid three">
+          <div class="field"><label>Nombre / razón social</label><input type="text" id="c-nombre" placeholder="Nombre o empresa"></div>
+          <div class="field"><label>Código</label><input type="text" id="c-codigo" placeholder="Código interno"></div>
+          <div class="field"><label>NIF / CIF</label><input type="text" id="c-nif" placeholder="B12345678"></div>
+          <div class="field"><label>Teléfono</label><input type="tel" id="c-tel" placeholder="600 000 000"></div>
+          <div class="field"><label>Email</label><input type="email" id="c-email" placeholder="correo@ejemplo.com"></div>
+          <div class="field"><label>Forma de pago habitual</label>
+            <select id="c-pago">
+              <option value="domiciliacion">Domiciliación bancaria</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="efectivo">Efectivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn primary" onclick="addClienteManual()">Añadir cliente</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Listado de clientes</div>
+        <div class="table-wrap" id="tabla-clientes"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, deleteDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAl3mGuJwEng-n-LSeHDIqI8BGDoz76OcM",
+  authDomain: "kanban-2bd67.firebaseapp.com",
+  projectId: "kanban-2bd67",
+  storageBucket: "kanban-2bd67.firebasestorage.app",
+  messagingSenderId: "1027301817053",
+  appId: "1:1027301817053:web:35b05946fb937341603934"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const fsdb = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+provider.addScope('https://www.googleapis.com/auth/spreadsheets.readonly');
+
+const SHEETS_ID = '15d__xtuc-bhC52JZ6N_Ij1kC4pKmGY1gdZyAiKmoVO4';
+
+let currentUser = null;
+let sheetsToken = null;
+window._gestiones = [];
+window._suplidos = [];
+window._clientes = [];
+
+const TIPO_L = {fiscal:'Fiscal',mercantil:'Mercantil',dgt:'DGT/Tráfico',notif:'Notificaciones',sepa:'SEPA/Fact.',otro:'Otro'};
+const PAGO_L = {domiciliacion:'Domiciliación',tarjeta:'Tarjeta',transferencia:'Transferencia',efectivo:'Efectivo'};
+const PER_L  = {unica:'Única',mensual:'Mensual',trimestral:'Trimestral',anual:'Anual'};
+const today = () => new Date().toISOString().slice(0,10);
+const clienteNombre = id => { const c = window._clientes.find(c=>c.id===id); return c ? c.nombre+(c.codigo?' ('+c.codigo+')':'') : (id||'—'); };
+const col = name => collection(fsdb,'usuarios',currentUser.uid,name);
+
+// ── Toast ─────────────────────────────────────────────────────────
+window.toast = msg => {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+};
+
+// ── Navigation ────────────────────────────────────────────────────
+window.showPage = p => {
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-item')[{registro:0,suplidos:1,informe:2,clientes:3}[p]].classList.add('active');
+};
+
+// ── Auth ──────────────────────────────────────────────────────────
+window.loginGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const cred = GoogleAuthProvider.credentialFromResult(result);
+    sheetsToken = cred.accessToken;
+    sessionStorage.setItem('st', sheetsToken);
+  } catch(e) { window.toast('Error al iniciar sesión: ' + e.message); }
+};
+
+window.logoutUser = async () => {
+  await signOut(auth);
+  sessionStorage.removeItem('st');
+  location.reload();
+};
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    sheetsToken = sessionStorage.getItem('st');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    const av = document.getElementById('user-avatar');
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    av.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : (user.displayName||user.email).slice(0,2).toUpperCase();
+    await loadAll();
+    populateSelects();
+    renderTablaGestiones(); renderTablaSuplidos(); renderClientes(); renderInforme();
+    document.getElementById('f-fecha').value = today();
+    document.getElementById('s-fecha').value = today();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+});
+
+// ── Load ──────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const [gs, ss, cs] = await Promise.all([
+      getDocs(query(col('gestiones'), orderBy('fecha','desc'))),
+      getDocs(query(col('suplidos'), orderBy('fecha','desc'))),
+      getDocs(col('clientes'))
+    ]);
+    window._gestiones = []; gs.forEach(d => window._gestiones.push({id:d.id,...d.data()}));
+    window._suplidos = [];  ss.forEach(d => window._suplidos.push({id:d.id,...d.data()}));
+    window._clientes = [];  cs.forEach(d => window._clientes.push({id:d.id,...d.data()}));
+    window._clientes.sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  } catch(e) { window.toast('Error cargando datos'); }
+}
+
+// ── Selects ───────────────────────────────────────────────────────
+function populateSelects() {
+  const meses = [...new Set([...window._gestiones,...window._suplidos].map(x=>x.fecha.slice(0,7)))].sort().reverse();
+  [['f-cliente',false],['s-cliente',false],['filtro-cliente',true],['inf-cliente',true],['sf-cliente',true]].forEach(([id,isF])=>{
+    const el=document.getElementById(id); if(!el)return;
+    const prev=el.value;
+    el.innerHTML=isF?'<option value="">Todos los clientes</option>':'<option value="">— Seleccionar cliente —</option>';
+    window._clientes.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nombre+(c.codigo?' ('+c.codigo+')':'');el.appendChild(o);});
+    if(prev)el.value=prev;
+  });
+  [['filtro-mes','Todos los meses'],['inf-mes','Mes actual'],['sf-mes','Todos los meses']].forEach(([id,def])=>{
+    const el=document.getElementById(id); if(!el)return;
+    const prev=el.value;
+    el.innerHTML=`<option value="">${def}</option>`;
+    meses.forEach(m=>{
+      const [y,mo]=m.split('-');
+      const n=new Date(y,parseInt(mo)-1).toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+      const o=document.createElement('option');o.value=m;o.textContent=n.charAt(0).toUpperCase()+n.slice(1);el.appendChild(o);
+    });
+    if(prev)el.value=prev;
+  });
+}
+
+// ── Gestiones ─────────────────────────────────────────────────────
+window.addGestion = async () => {
+  const cli=document.getElementById('f-cliente').value;
+  const desc=document.getElementById('f-desc').value.trim();
+  if(!cli){window.toast('Selecciona un cliente');return;}
+  if(!desc){window.toast('Indica la descripción');return;}
+  const honor=parseFloat(document.getElementById('f-honor').value)||0;
+  const suplido=parseFloat(document.getElementById('f-suplido').value)||0;
+  const fecha=document.getElementById('f-fecha').value||today();
+  const g={cliente:cli,tipo:document.getElementById('f-tipo').value,desc,fecha,honor,suplido,pago:document.getElementById('f-pago').value,periodo:document.getElementById('f-periodo').value,notas:document.getElementById('f-notas').value.trim(),createdAt:Date.now()};
+  const ref=await addDoc(col('gestiones'),g);
+  window._gestiones.unshift({id:ref.id,...g});
+  if(suplido>0){
+    const s={cliente:cli,concepto:'Suplido: '+desc,importe:suplido,fecha,obs:'Desde gestión',createdAt:Date.now()};
+    const sr=await addDoc(col('suplidos'),s);
+    window._suplidos.unshift({id:sr.id,...s});
+  }
+  populateSelects(); renderTablaGestiones(); renderTablaSuplidos(); renderInforme();
+  clearFormGestion(); window.toast('Gestión registrada');
+};
+
+window.deleteGestion = async id => {
+  if(!confirm('¿Eliminar esta gestión?'))return;
+  await deleteDoc(doc(fsdb,'usuarios',currentUser.uid,'gestiones',id));
+  window._gestiones=window._gestiones.filter(g=>g.id!==id);
+  renderTablaGestiones(); renderInforme();
+};
+
+window.clearFormGestion = () => {
+  ['f-desc','f-honor','f-suplido','f-notas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-fecha').value=today();
+};
+
+// ── Suplidos ──────────────────────────────────────────────────────
+window.addSuplido = async () => {
+  const cli=document.getElementById('s-cliente').value;
+  const concepto=document.getElementById('s-concepto').value.trim();
+  const importe=parseFloat(document.getElementById('s-importe').value)||0;
+  if(!cli||!concepto||importe<=0){window.toast('Rellena todos los campos');return;}
+  const fecha=document.getElementById('s-fecha').value||today();
+  const s={cliente:cli,concepto,importe,fecha,obs:document.getElementById('s-obs').value.trim(),createdAt:Date.now()};
+  const ref=await addDoc(col('suplidos'),s);
+  window._suplidos.unshift({id:ref.id,...s});
+  ['s-concepto','s-importe','s-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-fecha').value=today();
+  populateSelects(); renderTablaSuplidos(); renderInforme(); window.toast('Suplido añadido');
+};
+
+window.deleteSuplido = async id => {
+  if(!confirm('¿Eliminar este suplido?'))return;
+  await deleteDoc(doc(fsdb,'usuarios',currentUser.uid,'suplidos',id));
+  window._suplidos=window._suplidos.filter(s=>s.id!==id);
+  renderTablaSuplidos(); renderInforme();
+};
+
+// ── Clientes ──────────────────────────────────────────────────────
+async function saveCliente(d) {
+  if(!d.nombre) return false;
+  if(window._clientes.find(c=>c.nombre.toLowerCase()===d.nombre.toLowerCase())) return false;
+  const ref=await addDoc(col('clientes'),d);
+  window._clientes.push({id:ref.id,...d});
+  window._clientes.sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+  return true;
+}
+
+window.addClienteManual = async () => {
+  const d={
+    nombre:document.getElementById('c-nombre').value.trim(),
+    codigo:document.getElementById('c-codigo').value.trim(),
+    nif:document.getElementById('c-nif').value.trim(),
+    tel:document.getElementById('c-tel').value.trim(),
+    email:document.getElementById('c-email').value.trim(),
+    pago:document.getElementById('c-pago').value
+  };
+  if(!d.nombre){window.toast('El nombre es obligatorio');return;}
+  const ok=await saveCliente(d);
+  if(ok){
+    ['c-nombre','c-codigo','c-nif','c-tel','c-email'].forEach(id=>document.getElementById(id).value='');
+    window.toast('Cliente añadido');
+  } else { window.toast('Ya existe un cliente con ese nombre'); }
+  populateSelects(); renderClientes();
+};
+
+window.deleteCliente = async id => {
+  if(!confirm('¿Eliminar este cliente?'))return;
+  await deleteDoc(doc(fsdb,'usuarios',currentUser.uid,'clientes',id));
+  window._clientes=window._clientes.filter(c=>c.id!==id);
+  populateSelects(); renderClientes();
+};
+
+// ── Google Sheets import ──────────────────────────────────────────
+window.importarSheets = async () => {
+  const btn=document.getElementById('btn-import-sheets');
+  const result=document.getElementById('sheets-result');
+
+  if(!sheetsToken) {
+    try {
+      const res=await signInWithPopup(auth,provider);
+      const cred=GoogleAuthProvider.credentialFromResult(res);
+      sheetsToken=cred.accessToken;
+      sessionStorage.setItem('st',sheetsToken);
+    } catch(e) { window.toast('Necesitas autenticarte de nuevo'); return; }
+  }
+
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Importando…';
+
+  try {
+    const resp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}/values/A2%3AB`,{
+      headers:{'Authorization':'Bearer '+sheetsToken}
+    });
+    if(!resp.ok){ const err=await resp.json(); throw new Error(err.error?.message||'Error al acceder a Sheets'); }
+    const data=await resp.json();
+    const rows=data.values||[];
+    let added=0,skipped=0;
+    for(const row of rows){
+      const codigo=(row[0]||'').trim();
+      const nombre=(row[1]||'').trim();
+      if(!nombre)continue;
+      const ok=await saveCliente({nombre,codigo,nif:'',tel:'',email:'',pago:'domiciliacion'});
+      ok?added++:skipped++;
+    }
+    populateSelects(); renderClientes();
+    result.innerHTML=`<div style="padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);font-size:13px;margin-top:8px">✓ Importados: <strong>${added}</strong> clientes${skipped?' · Ya existían: '+skipped:''}</div>`;
+    window.toast(`${added} clientes importados`);
+  } catch(e) {
+    result.innerHTML=`<div style="padding:10px 14px;background:var(--red-bg);color:var(--red);border-radius:var(--radius);font-size:13px;margin-top:8px">Error: ${e.message}</div>`;
+    window.toast('Error al importar');
+  }
+  btn.disabled=false; btn.textContent='Importar / actualizar';
+};
+
+// ── Renders ───────────────────────────────────────────────────────
+function renderTablaGestiones() {
+  const mes=document.getElementById('filtro-mes').value;
+  const cli=document.getElementById('filtro-cliente').value;
+  let data=window._gestiones;
+  if(mes)data=data.filter(g=>g.fecha.slice(0,7)===mes);
+  if(cli)data=data.filter(g=>g.cliente===cli);
+  const el=document.getElementById('tabla-gestiones');
+  if(!data.length){el.innerHTML='<div class="empty"><div class="empty-icon">✎</div>No hay gestiones para los filtros seleccionados</div>';return;}
+  const tH=data.reduce((a,g)=>a+g.honor,0),tS=data.reduce((a,g)=>a+g.suplido,0);
+  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Descripción</th><th>Honorarios</th><th>Suplidos</th><th>Pago</th><th>Period.</th><th></th></tr></thead>
+  <tbody>${data.map(g=>`<tr>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap">${g.fecha}</td>
+    <td style="font-weight:500;white-space:nowrap">${clienteNombre(g.cliente)}</td>
+    <td><span class="badge ${g.tipo}">${TIPO_L[g.tipo]||g.tipo}</span></td>
+    <td>${g.desc}${g.notas?`<br><span style="color:var(--text-faint);font-size:11px">${g.notas}</span>`:''}</td>
+    <td class="money">${g.honor.toFixed(2)} €</td>
+    <td class="money highlight">${g.suplido>0?g.suplido.toFixed(2)+' €':'—'}</td>
+    <td style="white-space:nowrap;font-size:12px;color:var(--text-muted)">${PAGO_L[g.pago]||g.pago}</td>
+    <td style="font-size:12px;color:var(--text-muted)">${PER_L[g.periodo]||g.periodo}</td>
+    <td><button class="btn danger sm" onclick="deleteGestion('${g.id}')">Eliminar</button></td>
+  </tr>`).join('')}</tbody>
+  <tfoot><tr class="tfoot"><td colspan="4" style="text-align:right;color:var(--text-muted);font-size:12px">Totales</td><td class="money total">${tH.toFixed(2)} €</td><td class="money highlight">${tS.toFixed(2)} €</td><td colspan="3"></td></tr></tfoot></table>`;
+}
+
+function renderTablaSuplidos() {
+  const mes=document.getElementById('sf-mes').value;
+  const cli=document.getElementById('sf-cliente').value;
+  let data=window._suplidos;
+  if(mes)data=data.filter(s=>s.fecha.slice(0,7)===mes);
+  if(cli)data=data.filter(s=>s.cliente===cli);
+  const el=document.getElementById('tabla-suplidos');
+  if(!data.length){el.innerHTML='<div class="empty"><div class="empty-icon">◈</div>No hay suplidos registrados</div>';return;}
+  const total=data.reduce((a,s)=>a+s.importe,0);
+  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Importe</th><th>Referencia</th><th></th></tr></thead>
+  <tbody>${data.map(s=>`<tr>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${s.fecha}</td>
+    <td style="font-weight:500">${clienteNombre(s.cliente)}</td>
+    <td>${s.concepto}</td>
+    <td class="money highlight">${s.importe.toFixed(2)} €</td>
+    <td style="color:var(--text-faint);font-size:12px">${s.obs||'—'}</td>
+    <td><button class="btn danger sm" onclick="deleteSuplido('${s.id}')">Eliminar</button></td>
+  </tr>`).join('')}</tbody>
+  <tfoot><tr class="tfoot"><td colspan="3" style="text-align:right;color:var(--text-muted);font-size:12px">Total</td><td class="money total">${total.toFixed(2)} €</td><td colspan="2"></td></tr></tfoot></table>`;
+}
+
+function renderClientes() {
+  const el=document.getElementById('tabla-clientes');
+  if(!window._clientes.length){el.innerHTML='<div class="empty"><div class="empty-icon">◎</div>No hay clientes registrados</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Nombre / razón social</th><th>Código</th><th>NIF/CIF</th><th>Teléfono</th><th>Email</th><th>Pago habitual</th><th></th></tr></thead>
+  <tbody>${window._clientes.map(c=>`<tr>
+    <td style="font-weight:500">${c.nombre}</td>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted)">${c.codigo||'—'}</td>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${c.nif||'—'}</td>
+    <td>${c.tel||'—'}</td>
+    <td style="color:var(--blue);font-size:12px">${c.email||'—'}</td>
+    <td style="font-size:12px">${PAGO_L[c.pago]||c.pago||'—'}</td>
+    <td><button class="btn danger sm" onclick="deleteCliente('${c.id}')">Eliminar</button></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function renderInforme() {
+  const mes=document.getElementById('inf-mes').value||(new Date().toISOString().slice(0,7));
+  const cliF=document.getElementById('inf-cliente').value;
+  let gs=window._gestiones.filter(g=>g.fecha.slice(0,7)===mes);
+  let ss=window._suplidos.filter(s=>s.fecha.slice(0,7)===mes);
+  if(cliF){gs=gs.filter(g=>g.cliente===cliF);ss=ss.filter(s=>s.cliente===cliF);}
+  const [y,mo]=mes.split('-');
+  const mesLabel=(()=>{const n=new Date(y,parseInt(mo)-1).toLocaleDateString('es-ES',{month:'long',year:'numeric'});return n.charAt(0).toUpperCase()+n.slice(1);})();
+  const tH=gs.reduce((a,g)=>a+g.honor,0),tS=ss.reduce((a,s)=>a+s.importe,0);
+  const el=document.getElementById('informe-contenido');
+  if(!gs.length&&!ss.length){el.innerHTML='<div class="empty"><div class="empty-icon">⊟</div>No hay gestiones en este período</div>';return;}
+  const cids=[...new Set([...gs.map(g=>g.cliente),...ss.map(s=>s.cliente)])];
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px">
+    <div><div style="font-size:18px;font-weight:600">${mesLabel}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Generado el ${today()}${cliF?' · '+clienteNombre(cliF):''}</div></div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric"><div class="metric-label">Gestiones</div><div class="metric-value">${gs.length}</div></div>
+    <div class="metric"><div class="metric-label">Honorarios</div><div class="metric-value currency">${tH.toFixed(2)}</div></div>
+    <div class="metric"><div class="metric-label">Suplidos</div><div class="metric-value currency">${tS.toFixed(2)}</div></div>
+    <div class="metric"><div class="metric-label">Total</div><div class="metric-value currency">${(tH+tS).toFixed(2)}</div></div>
+  </div>
+  ${cids.map(cid=>{
+    const cg=gs.filter(g=>g.cliente===cid),cs=ss.filter(s=>s.cliente===cid);
+    const th=cg.reduce((a,g)=>a+g.honor,0),ts=cs.reduce((a,s)=>a+s.importe,0);
+    return `<div class="informe-cliente-block">
+      <div class="informe-cliente-header">
+        <div class="informe-cliente-name">${clienteNombre(cid)}</div>
+        <div class="informe-cliente-totals">Honorarios: ${th.toFixed(2)} € · Suplidos: ${ts.toFixed(2)} € · Total: ${(th+ts).toFixed(2)} €</div>
+      </div>
+      ${cg.length?`<table style="font-size:12px"><thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Honorarios</th><th>Suplido</th><th>Forma de pago</th><th>Periodicidad</th></tr></thead>
+      <tbody>${cg.map(g=>`<tr>
+        <td style="font-family:'IBM Plex Mono',monospace;white-space:nowrap">${g.fecha}</td>
+        <td><span class="badge ${g.tipo}" style="font-size:10px">${TIPO_L[g.tipo]||g.tipo}</span></td>
+        <td>${g.desc}${g.notas?`<br><span style="color:var(--text-faint);font-size:11px">${g.notas}</span>`:''}</td>
+        <td class="money">${g.honor.toFixed(2)} €</td>
+        <td class="money highlight">${g.suplido>0?g.suplido.toFixed(2)+' €':'—'}</td>
+        <td style="white-space:nowrap">${PAGO_L[g.pago]||g.pago}</td>
+        <td style="white-space:nowrap">${PER_L[g.periodo]||g.periodo}</td>
+      </tr>`).join('')}</tbody></table>`:''}
+      ${cs.length?`<div style="border-top:1px solid var(--border)">
+        <div style="padding:8px 10px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint)">Suplidos adicionales</div>
+        <table style="font-size:12px"><thead><tr><th>Fecha</th><th>Concepto</th><th>Importe</th><th>Referencia</th></tr></thead>
+        <tbody>${cs.map(s=>`<tr>
+          <td style="font-family:'IBM Plex Mono',monospace">${s.fecha}</td>
+          <td>${s.concepto}</td><td class="money highlight">${s.importe.toFixed(2)} €</td>
+          <td style="color:var(--text-faint)">${s.obs||'—'}</td>
+        </tr>`).join('')}</tbody></table></div>`:''}
+    </div>`;
+  }).join('')}`;
+}
+
+window.renderTablaGestiones = renderTablaGestiones;
+window.renderTablaSuplidos = renderTablaSuplidos;
+window.renderInforme = renderInforme;
+</script>
+</body>
+</html>
