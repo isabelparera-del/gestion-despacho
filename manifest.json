@@ -1,0 +1,25 @@
+{
+  "name": "Parera Consulting — Gestiones",
+  "short_name": "Gestiones",
+  "description": "Registro de gestiones y facturación del despacho",
+  "start_url": "/gestion-despacho/",
+  "scope": "/gestion-despacho/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f7f6f3",
+  "theme_color": "#1a1916",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
